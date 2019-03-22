@@ -1,0 +1,72 @@
+---
+title: "Seattle Reign FC Marketing Strategies Consulting"
+author: "Wei Li"
+date: "March, 21st, 2019"
+output: slidy_presentation
+---
+
+```{r, message = FALSE, echo = FALSE, error = FALSE, warning = FALSE}
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+
+```
+
+```{r echo=FALSE, include=FALSE}
+library(tidyverse)
+load("workspace.RData")
+```
+
+About this research
+=========================================
+
++ Focus: Impact of the present marketing strategies
+
++ Purpose: Provide suggestions for Seattle Reign marketing department
+
++ Data is from survey
+
++ Consisting of four sections about past attendance behaviors, behavior intentions, psychographics, and demographics
+
++ 684 useable survey responses obtained
+
++ Findings and suggestions following are all from this data set
+
+
+Effectiveness of All present Marketing Strategies
+=========================================
+```{r echo=FALSE}
+G1
+```
+
+Season Tickets Selling
+=========================================
+```{r echo=FALSE}
+G2
+```
+
+Best Game Time for Audiences
+=========================================
+```{r echo=FALSE}
+G3
+```
+
+Conclusion and Suggestions Based on Previous Analysis
+=========================================
+
+* Invest more efforts and money in the promoting activities: 
+    + Emails and Internet ads
+    + Providing discounts, especially post-matches discount
+    + Encourage audience to come together with companions
+    + Media publicity about team matches, especially Facebook posts
+* Promote season tickets sold in these 4 groups:
+    + Household income ranging from $200,000 to $299,999
+    + Household income ranging from $100,000 to $149,999
+    + Household income ranging from $60,000 to $79,999
+    + Household income ranging and from $20,000 to $39,999
+* Game time:
+    + Arrange more events on Saturday 4 pm, Saturday 1 pm and Sunday 4 pm
+    + For events arranged on Wednesday evenings or Sunday evenings, provide discount
+

@@ -1,0 +1,697 @@
+---
+title: "Seattle Reign Project-TA"
+author: "Wei Li"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+---
+
+```{r echo = TRUE}
+# Course: BUAN 5210
+# Title: Seattle Reign Project-TA
+# Purpose: Final Project
+# Date: March 21, 2019
+# Author: Wei Li
+```
+
+```{r message = FALSE, echo = FALSE, error = FALSE, warning = FALSE}
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+
+```
+
+# Load libraries
+```{r message = FALSE, error = FALSE, warning = FALSE}
+library(tidyverse)
+library(stringr)
+library(RColorBrewer)
+```
+
+# Research question:
+
++ What are the primary factors that impact attendance intentions?
+
+
+# Load data
+```{r}
+data <- read.csv("Seattle_Reign.csv")
+```
+
+# EDA
+
+## Preliminary EDA 
+
+### 1. Data about Attendence Intentions
+```{r}
+# The column of interest: We're anlayzing the attendence intentions, so "Number of Seattle Reign FC match(es) that you intend to attend this coming season (2017) -- Gamepln1" would be an index to show how strongly one would like to attend the match.
+
+# The possible columns that might impact attendence: 
+## Interest: describe your interest in Seattle Reign FC:
+  ### 5=I live and die with this team
+  ### 4=I consider myself to be a loyal fan of this team
+  ### 3=I consider myself to be a moderate fan of this team
+  ### 2=I consider myself to be a low-level fan of this team
+  ### 1=I have a small amount of interest
+## Travel5: the approximate distance you travel to the game
+## lasttype: What type of ticket did you use?
+## Gamewit1/2/3/4: Who do you attend matches with?
+  ### 1=Family; 2=Friends; 3=Business Associates; 4=I attend games by myself
+## Media1: Newspaper ads for Seattle Reign FC matches
+## Media3: Seattle Reign FC billboard ads
+## Media4: Radio ads for Seattle Reign FC matches
+## Media5: Media publicity about Seattle Reign FC matches
+## Media6: Internet ads for the team EMAILS 
+## Media12: Emails
+## Media7a: Seattle Reign FC Facebook posts
+## Media7b: Seattle Reign FC Twitter posts
+## Promo1: Ticket discounts or promotions
+## Promo3: Match themes (i.e. Military Appreciation, College Night) discount
+## Promo4: Halftime events
+## Promo5: Pre-match events
+## Promo6: Post-match events
+## WOM1: Word of Mouth from friends
+## WOM2: Word of Mouth from family
+## WOM3: Word of Mouth from Acquaintances
+## Income: Household Income
+## GameTim1/2/3/4/5/6/7: which days/times works best for you to attend Reign FC matches:
+  ###1=Wed Evenings
+  ###2=Friday Evenings
+  ###3=Saturday Afternoons 1pm
+  ###4=Saturday Afternoons 4pm
+  ###5=Saturday Evenings
+  ###6=Sunday Afternoons 4pm
+  ###7=Sunday Evenings
+
+attend <- data %>% 
+  select(Media1, Media3, Media4, Media5, Media6, Media12, Media7a, Media7b, Promo1, Promo3, Promo4, Promo5, Promo6, WOM1, WOM2, WOM3, Gamepln1, Interest, Travel5, lasttype, Gamewit1, Gamewit2, Gamewit3, Gamewit4, EndDate, Income, GameTim1, GameTim2, GameTim3, GameTim4, GameTim5, GameTim6, GameTim7) %>% 
+  na.exclude()
+    #Gamepln1, Interest, Attend1, Travel5, lasttype, Gamewit1, Gamewit2, Gamewit3, Gamewit4, Media1, Media3, Media4, Media5, Media6, Media12, Media7a, Media7b, Promo3, Promo4, Promo5, Promo6, WOM1, WOM2, WOM3, Income, GameTim1, GameTim2, GameTim3, GameTim4, GameTim5, GameTim6, GameTim7, Promo1)
+
+# Use the intuitive descriptions for the levels of impact in the 10:24 columns.
+## change the data type in these column so that can be editable.
+attend[1:16] <- lapply(attend[1:16], as.character) 
+attend[1:16][attend[, 1:16] == "\n\n\n\n\n-1"] <- "A Little Negative Influence"
+attend[1:16][attend[, 1:16] == "\n\n\n\n\n1"] <- "A Little Positive Influence"
+attend[1:16][attend[, 1:16] == "\n\n\n\n\n2"] <- "Some Positive Influence"
+attend[1:16][attend[, 1:16] == "\n\n\n\n\n-2"] <- "Some Negative Influence"
+attend[1:16][attend[, 1:16] == "Had a negative influence on my attendance\n-3"] <- "Negative Influence"
+attend[1:16][attend[, 1:16] == "Has a positive influence on my attendance\n3"] <- "Positive Influence"
+attend[1:16][attend[, 1:16] == "Has no influence on my attendance\n\n0"] <- "No Influence"
+## change back to the factor type
+attend[1:16] <- lapply(attend[1:16], as.factor)
+
+##change data type
+attend[21:24] <- lapply(attend[21:24], as.factor) 
+attend[27:33] <- lapply(attend[27:33], as.factor) 
+
+#the end date column is coded date. to make it easier to read in the dashboard slicer, here we convert the date number to smaller.
+attend$EndDate <- attend$EndDate-13700000000
+
+str(attend)
+```
+
+### 2. Impact of interest
+```{r}
+# The distribution of Interest
+attend %>% 
+  select(Interest) %>% 
+  ggplot(aes(x = Interest))+
+  geom_bar(stat = "count") +
+  coord_flip()
+# How much they want to attend the following matches with different levels of interest: 
+attend %>% 
+  select(Gamepln1, Interest) %>% 
+  na.exclude() %>% 
+  group_by(Interest) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Interest, avg), y = avg)) +
+  geom_bar(stat = "identity") +
+  coord_flip()
+```
+
+The interest is a strong indicator to predict whether the participants would like to attend the following matches next year. The stronger the interest is, the more one would like to attend for the future events.
+
+### 3. Impact of distance
+```{r}
+attend %>% 
+  select(Gamepln1, Travel5) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Travel5, y = Gamepln1)) +
+  geom_point()+
+  geom_smooth(method = "lm", formula = y~x)
+
+cor.test(attend$Travel5, attend$Gamepln1)
+```
+
+From the regression line, we see the trend is as the distance increases, the number of the game in the following year to attend is decreasing. However, according to the graph as well as the correlation test, this trend is not obvious or strong enough.
+
+
+### 4. Impact of ticket type
+```{r}
+attend$lasttype <- factor(attend$lasttype, levels =  c("I don't know","Single Match","3 Match Pack", "5 Match Pack","Season Ticket","Pitchside Table"))
+
+attend %>% 
+  select(Gamepln1, lasttype) %>% 
+  group_by(lasttype) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = lasttype, y = avg))+
+  geom_bar(stat = "identity")
+```
+
+People who bought season ticket has the strongest intention to attend the following events in next year. 
+
+### 5. Impact of companions
+```{r}
+
+
+attend %>% 
+  select(Gamepln1, Gamewit1, Gamewit2, Gamewit3, Gamewit4) %>% 
+  filter(Gamewit1 == "1" | Gamewit2 == "1" | Gamewit3 == "1" | Gamewit4 == "1") %>% 
+  na.exclude() %>% 
+  gather(wit, yesno, -Gamepln1) %>% 
+  filter(yesno == 1) %>% 
+  group_by(wit) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(wit, -avg), y = avg))+
+  geom_bar(stat = "identity")
+```
+
+1=Family; 2=Friends; 3=Business Associates; 4=I attend games by myself.
+So the alone participants has strongest passion for the future attending, followed by with friends, with family, and the weakest-passionate participants are with business associates. This makes sense because to attending these events is for pure leisure and relaxation. So it might not be quite enjoyable when with business associates.
+
+### 7. Impact of newspaper ads for Seattle Reign FC matches
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Media1) %>% 
+  ggplot(aes(x = Media1))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Media1) %>% 
+  na.exclude() %>% 
+  group_by(Media1) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Media1, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+1. For this present event, most of the participants felt the newspaper ads has no impact.
+
+2. For the future events, people who felt newspaper ads has positive influence would like to attend more.
+
+### 8. Impact of Seattle Reign FC billboard ads
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Media3) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Media3))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Media3) %>% 
+  na.exclude() %>% 
+  group_by(Media3) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Media3, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+Similar findings as newspaper ads impact.
+
+### 9. Impact of Radio ads for Seattle Reign FC matches
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Media4) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Media4))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Media4) %>% 
+  na.exclude() %>% 
+  group_by(Media4) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Media4, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+Similar findings as newspaper ads impact.
+
+### 10. Impact of Media publicity about Seattle Reign FC matches
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Media5) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Media5))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Media5) %>% 
+  na.exclude() %>% 
+  group_by(Media5) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Media5, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+1. For this present event, most of the participants think media publicity has positive influence.
+
+2. For the future events, people who felt media publicity has some negative impact would attend future events more. This seems to be interesting. 
+
+### 11. Impact of Internet ads for the team EMAILS
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Media6) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Media6))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Media6) %>% 
+  na.exclude() %>% 
+  group_by(Media6) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Media6, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+1. For this present event, the numbers of people who think internet ads have no influence and people who think those have positive influence are very close.
+
+2. For the future events, people who felt media publicity has a little negative impact would attend future events more. This seems to be interesting. 
+
+### 12. Impact of EMAILS
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Media12) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Media12))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Media12) %>% 
+  na.exclude() %>% 
+  group_by(Media12) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Media12, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+1. For this present event, most of the participants think media publicity has positive influence.
+
+2. For the future events, people who felt media publicity has a little negative impact would attend future events more. This seems to be interesting. 
+
+### 13. Impact of Seattle Reign FC Facebook posts
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Media7a) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Media7a))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Media7a) %>% 
+  na.exclude() %>% 
+  group_by(Media7a) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Media7a, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+Similar result as the internet ads for the team emails.
+
+### 14. Impact of Seattle Reign FC Twitter posts
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Media7b) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Media7b))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Media7b) %>% 
+  na.exclude() %>% 
+  group_by(Media7b) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Media7b, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+1. For this present event, most of the participants think twitter pages has no influence.
+
+2. For the future events, people who felt media publicity has a little negative impact would attend future events more. This seems to be interesting. 
+
+### 15. Impact of Ticket discounts or promotions
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Promo1) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Promo1))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Promo1) %>% 
+  na.exclude() %>% 
+  group_by(Promo1) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Promo1, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+1. For this present event, most of the participants think discounts and promotions have positive influence.
+
+2. For the future events, there isn't any influence from the present disoucnt.
+
+
+### 16. Impact of Match themes discount
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Promo3) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Promo3))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Promo3) %>% 
+  na.exclude() %>% 
+  group_by(Promo3) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Promo3, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+### 17. Impact of Halftime events discount
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Promo4) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Promo4))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Promo4) %>% 
+  na.exclude() %>% 
+  group_by(Promo4) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Promo4, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+### 18. Impact of Pre-match events discount
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Promo5) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Promo5))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Promo5) %>% 
+  na.exclude() %>% 
+  group_by(Promo5) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Promo5, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+### 19. Impact of Post-match events discount
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(Promo6) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = Promo6))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, Promo6) %>% 
+  na.exclude() %>% 
+  group_by(Promo6) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(Promo6, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+### 20. Impact of Word of Mouth from friends
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(WOM1) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = WOM1))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, WOM1) %>% 
+  na.exclude() %>% 
+  group_by(WOM1) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(WOM1, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+1. For this present event, most of the participants think twitter pages has positive influence.
+
+2. For the future events, people who felt media publicity has some negative impact would attend future events more. 
+
+### 21. Impact of Word of Mouth from family
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(WOM2) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = WOM2))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, WOM2) %>% 
+  na.exclude() %>% 
+  group_by(WOM2) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(WOM2, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+1. For this present event, the numbers of people who think internet ads have no influence and people who think those have positive influence are very close.
+
+2. For the future events, people who felt media publicity has positive impact would attend future events more. 
+
+### 22. Impact of Word of Mouth from Acquaintances
+```{r}
+# Impact on this present event attendence
+attend %>% 
+  select(WOM3) %>% 
+  na.exclude() %>% 
+  ggplot(aes(x = WOM3))+
+  geom_bar()+
+  coord_flip()
+# Impact on future events attendence
+attend %>% 
+  select(Gamepln1, WOM3) %>% 
+  na.exclude() %>% 
+  group_by(WOM3) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = reorder(WOM3, avg), y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+```
+
+### 23. Impact of income
+```{r}
+attend$Income <- factor(attend$Income, levels =  c("Below $20,000", "$20,000 - $39,999","$40,000 - $59,999","$60,000 - $79,999","$80,000 - $99,999", "$100,000 - $149,999","$150,000 - $199,999","$200,000 -$299,999", "$300,000 or Above"))
+attend %>% 
+  select(Gamepln1, Income) %>% 
+  na.exclude() %>% 
+  group_by(Income) %>% 
+  summarise(avg = mean(Gamepln1)) %>% 
+  ggplot(aes(x = Income, y = avg))+
+  geom_bar(stat = "identity")+
+  coord_flip()
+
+```
+
+### 24. Impact of game time
+```{r}
+# count the most popular game time
+cnt <- c(sum(attend$GameTim1 ==1)+sum(attend$GameTim1 ==2), 
+         sum(attend$GameTim2 ==1)+sum(attend$GameTim2 ==2),
+         sum(attend$GameTim3 ==1)+sum(attend$GameTim3 ==2),
+         sum(attend$GameTim4 ==1)+sum(attend$GameTim4 ==2),
+         sum(attend$GameTim5 ==1)+sum(attend$GameTim5 ==2),
+         sum(attend$GameTim6 ==1)+sum(attend$GameTim6 ==2),
+         sum(attend$GameTim7 ==1)+sum(attend$GameTim7 ==2))
+
+time <- c("Wed Eve", "Fri Eve", "Sat 1pm", "Sat 4pm", "Sat Eve", "Sun 4pm", "Sun Eve")
+GT <- data.frame(time, cnt)
+GT
+```
+
+## Deeper EDA 
+### Impact on present event across all marketing strategies
+```{r}
+# write a function to calculate the ratio of the participants who think the marketing strategies are positively affecting their attendence.
+positive_ratio <- function(x, col){
+  x$pos <- ifelse(x[col] == "A Little Positive Influence" | x[col] == "Positive Influence" | x[col] == "Some Positive Influence", 1, 0)
+  round(sum(x$pos)/nrow(x), 2)
+}
+
+pos_ratio <- c(positive_ratio(attend, "Media1"),
+positive_ratio(attend, "Media3"),
+positive_ratio(attend, "Media4"),
+positive_ratio(attend, "Media5"),
+positive_ratio(attend, "Media6"),
+positive_ratio(attend, "Media12"),
+positive_ratio(attend, "Media7a"),
+positive_ratio(attend, "Media7b"),
+positive_ratio(attend, "Promo1"),
+positive_ratio(attend, "Promo3"),
+positive_ratio(attend, "Promo4"),
+positive_ratio(attend, "Promo5"),
+positive_ratio(attend, "Promo6"),
+positive_ratio(attend, "WOM1"),
+positive_ratio(attend, "WOM2"),
+positive_ratio(attend, "WOM3"))
+
+strategies <- c("Newspaper Ads","Billboard Ads","Radio Ads",
+                "Media Publicity","Internet Ads",
+                "Emails","Facebook Posts","Twitter Posts",
+                "Any Promotion", "Theme Discount",
+                "Halftime Promotion","Pre-Match Promotion",
+                "Post-Match Promotion","Friends Recommend",
+                "Family Recommend","Others Recommend")
+# The most effective marketing strategies
+PR <- data.frame(strategies, pos_ratio)
+
+PR$Grp <- as.factor(ifelse(pos_ratio>=0.5, 1, 0))
+G1 <- PR %>% 
+  ggplot(aes(x = reorder(strategies, pos_ratio), 
+             y = pos_ratio, fill = Grp))+
+  geom_bar(stat = "identity")+
+  geom_hline(yintercept = 0.5, colour = "darkslategrey")+
+  scale_fill_manual(values = c("slategray3", "steelblue4"))+
+  coord_flip()+
+  theme_light()+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  guides(fill = FALSE)+
+  labs(x = "Marketing Strategies", 
+       y = "Proportions of Positively Impacted Audience")+
+  annotate("text", x=5, y=0.55, label="prop = 0.5", family="serif", fontface="italic",colour = "steelblue4", size =3)+
+  ggtitle("Impact of All Marketing Strategies")+
+  theme(plot.title = element_text(size = rel(1.5), lineheight = .9, family = "serif", face = "bold", colour = "steelblue4"))+
+  theme(axis.title.x = element_text(face="italic", colour = "steelblue4", size = 11))+
+  theme(axis.title.y = element_text(face="italic", colour = "steelblue4", size = 11))
+G1
+
+```
+### Promote future events attendence by tiket type
+```{r}
+#since season ticket's customers would like to attend future events most.
+dat1 <- attend %>% 
+  select(Income, lasttype) %>% 
+  filter(lasttype != "I don't know" ) %>%
+  group_by(Income) %>% 
+  summarise(seaT= sum(lasttype == "Season Ticket")/n()) %>% 
+  mutate(avg = mean(seaT)) 
+line <- dat1$avg[1]
+dat1$Grp <- as.factor(ifelse(dat1$seaT>=line, 1, 0))
+  
+G2 <- dat1 %>% ggplot(aes(x = Income, y = seaT, fill=Grp))+
+  geom_bar(stat = "identity")+coord_flip()+
+  geom_hline(yintercept = dat1$avg[1], colour = "darkslategrey")+
+  scale_fill_manual(values = c("slategray3", "steelblue4"))+
+  #coord_flip()+
+  theme_light()+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  guides(fill = FALSE)+
+  theme(plot.title = element_text(size = rel(1.5), lineheight = .9, family = "serif", face = "bold", colour = "steelblue4"))+
+  theme(plot.subtitle = element_text(size = 12, hjust = 0, family = "serif", colour = "skyblue4"))+
+  theme(axis.title.x = element_text(face="italic", colour = "steelblue4", size = 11))+
+  theme(axis.title.y = element_text(face="italic", colour = "steelblue4", size = 11))+
+  labs(x = "Income Range", 
+       y = "Proportion of Season Tickets")+
+  annotate("text", x=6, y=0.49, label="Average prop line", family="serif", fontface="italic",colour = "steelblue4", size =3)+
+  ggtitle("Season Tickets Sold in Income Ranges", 
+          subtitle = "Customers who bought season tickets would most like to attend future \nevents next year. So season tickets should be promoted.")
+  
+G2
+```
+
+### Impact on events time
+```{r}
+GT$Grp <- as.factor(ifelse(GT$cnt>=150, "high", "low"))
+G3 <- GT %>% 
+  ggplot(aes(x=reorder(time, cnt), y=cnt, fill=Grp))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values = c("steelblue4","slategray3"), guide = FALSE)+
+  annotate("rect", xmin = 4.5, xmax = 7.5,ymin = 150, ymax = 290, alpha = .2, fill = "lightcyan3")+
+  annotate("text", x=5.5, y=230, label = "Popular Time", family="serif", color = "steelblue4")+
+  theme_light()+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  guides(fill = FALSE)+
+  theme(plot.title = element_text(size = rel(1.5), lineheight = .9, 
+                                  family = "serif", face = "bold", colour = "steelblue4"))+
+  theme(plot.subtitle = element_text(size = 12, hjust = 0, family = "serif", colour = "skyblue4"))+
+  theme(axis.title.x = element_text(face="italic", colour = "steelblue4", size = 11))+
+  theme(axis.title.y = element_text(face="italic", colour = "steelblue4", size = 11))+
+  labs(x = "Choice of Game Time", 
+       y = "Popularity Count")+
+  ggtitle("Choice of Game Time", 
+          subtitle = "Game times that are most to least popular.")
+G3
+```
+
+# Save workspace
+```{r}
+save.image("workspace.RData")
+```
+

@@ -1,0 +1,78 @@
+---
+output: html_document
+---
+
+#### **To: Manager in Seattle Reign FC Marketing Department**  
+  
+#### **From: Wei Li**  
+  
+#### **Date: `r format(Sys.time(), '%B %d, %Y')`**   
+  
+#### **Subject: Impact of the present marketing strategies and suggestions**  
+
+***
+
+```{r echo = FALSE}
+# Course: BUAN 5210
+# Title: Impact of the present marketing strategies and suggestions
+# Purpose: Provide suggestions for Seattle Reign marketing department
+# Date: Feb 18, 2019
+# Author: Wei Li
+```
+
+
+```{r, message = FALSE, echo = FALSE, error = FALSE, warning=FALSE}
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, error=FALSE}
+# Load librarys
+library(tidyverse)
+```
+
+```{r echo = FALSE}
+# Load saved image of the sales Tech Appendix workspace
+load("workspace.RData")
+```
+
+Hi Marketing Team,
+
+Seattle Reign FC, as one of the eight inaugural members of the American National Women's Soccer League (NWSL), has seen past successes in tickets selling and has featured a star-powered roster. The team played at Starfire Stadium in Tukwila, WA, during the first season. Then in February 2014, it moved to Memorial Stadium, located at the Seattle Center. As time goes by, customers' passion for sports events is going down, so tickets sales in recent years are not doing as well as before and has fewer big-name players. Reign FC has been seeking strategies to increase tickets sales and attendance. Now I'm hired by Reign FC as an outside consultant to help the marketing department find out ways to generate additional interest in the community. My main research questions is:
+
++ What's the impact of all marketing strategies in the past.
+
+By answering this question, then I can provide suggestions on marketing strategies for future events accordingly.
+
+Firstly, I created a survey consisting of four sections about past attendance behaviors, behavior intentions, psychographics, and demographics. The survey was distributed online through the mailing list provided by the Seattle Reign FC organization. There are 684 useable survey responses obtained. Then I analyzed the survey data and then addressed the research question. Below are my findings.
+
+The first graph is showing the positive impact of the 16 marketing strategies. The horizontal label "Proportion of Positively Impacted Audience" means the proportion of the audience that are either "positively influenced", "some positively influenced", or "a little bit positively influenced" by any of the promoting activities in the total number of audience. From the graph, we see the best marketing activities that best boost attendance are emails, all promoting discounts, word of mouth from friends, media publicity about team matches, word of mouth from family, Facebook posts, internet ads, word of mouth from acquaintances, and post-match promotions, listed in a descending order. More than 50% audience think these marketing are positively impacted their intention to attend the event. Thus the suggestion is to invest more efforts and money in the promoting activities mentioned above.
+
+
+```{r echo = FALSE, include = TRUE, message = FALSE}
+G1
+```
+
+There are 5 types of tickets, which are Single Match, 3 Match Pack, 5 Match Pack, Season Ticket, and Pitchside Table. After calculating the average number of future events in the next year that the audience would like to attend in the 5 groups of audience with different tickets type, I found out the highest is the group whose tickets are season tickets. So I think we should promote season tickets selling. The second graph shows the proportion of season tickets sold in the 9 household income ranges. The average proportion across all income ranges is 0.438, which means 43.8% of the tickets sold are season tickets on average. From the graph we can see, for the household income ranging from $200,000 to $299,999, from $100,000 to $149,999, from $60,000 to $79,999, and from $20,000 to $39,999, the proportion of season tickets sold are all lower than the average. So my suggestion is to promote season tickets sold in these 4 groups and hence future events attendance can be improved. For example, we can send emails to audience in the 4 groups and provide ads, discounts for season tickets.
+
+```{r echo = FALSE, include = TRUE, message = FALSE}
+G2
+```
+
+As we can envisage, game time could be an important factor that audience would consider whether to attend the event. I use Graph 3 to show the 3 most popular game time, which are on Saturday 4 pm, Saturday 1 pm and Sunday 4 pm, listed in descending order. So my suggestion is to arrange the events at the three time slots mentioned above. Then more audience would be able to attend. Also, if there are many events to arrange, for those arranged on Wednesday evenings or Sunday evenings, we could provide discount and then boost the less-favored time slots tickets selling.
+
+```{r echo = FALSE, include = TRUE, message = FALSE}
+G3
+```
+
+To conclude, some of the marketing strategies are under-performed and some are doing good. We can invest more in those marketing activities whose impacts are stronger, strengthen the impact and attract more attendance for future events. Also we can try to improve season tickets selling, especially in groups whose season tickets selling is lower than average. And for the game time, I suggest we make use of the popularity and favoredness of the time slots and apply marketing strategies accordingly.
+
+Please do not hesitate to contact me if you have further questions.
+
+Best regards,
+
+Wei Li
+
